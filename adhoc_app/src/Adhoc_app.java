@@ -13,7 +13,7 @@ public class Adhoc_app implements Runnable {
                 System.out.println(" Server is Running  ");
                 ServerSocket ss = new ServerSocket(9999);
                 DatagramSocket ds = new DatagramSocket(9999);
-
+                MulticastSocket ms = new MulticastSocket(9999);
 
                 while (true) {
 
@@ -24,21 +24,28 @@ public class Adhoc_app implements Runnable {
                     byte[] sendData = new byte[1024];
                     InetAddress IPAddress = InetAddress.getByName("localhost");
 
-                    //Send
+                    //Join multicast group
+                    InetAddress group = InetAddress.getByName("FF02::1");
+                    ms.joinGroup(group);
+
+                    //Send, utiliza o datagram socket para enviar
                     String toSend = "H1";
                     sendData = toSend.getBytes();
                     DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, 9999);
                     ds.send(sendPacket);
 
-                    //Receive
+                    //Receive, utiliza o multicast socket para receber
                     DatagramPacket receivedPacket = new DatagramPacket(receiveData, receiveData.length);
-                    ds.receive(receivedPacket);
+                    ms.receive(receivedPacket);
                     String msg = new String(receivedPacket.getData(), receivedPacket.getOffset(),
                             receivedPacket.getLength());
                     String type = msg.substring(0,1);
                     String ttlString = msg.substring(1,2);
                     int ttl = parseInt(ttlString);
 
+                    if(type.equals("H")){
+                        InetAddress from = receivedPacket.getAddress();
+                    }
 
 
 
@@ -49,7 +56,7 @@ public class Adhoc_app implements Runnable {
                     String data2 = reader.readLine().trim();
 
                     int num1 = Integer.parseInt(data1);     Não percebo o objetivo deste pedaço de código - Matias
-                    int num2 = Integer.parseInt(data2);
+                    int num2 = Integer.parseInt(data2);     Já entendi, é só para a parte da troca de dados, não precisamos para já
 
                     int result = num1 + num2;*/
 
