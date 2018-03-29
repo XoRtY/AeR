@@ -1,13 +1,23 @@
 import java.io.*;
 import java.net.*;
-import java.util.TreeMap;
 import java.lang.String;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 import static java.lang.Integer.parseInt;
 
 public class Adhoc_app implements Runnable {
 
-        //TreeMap <InetAddress, InetAddress> parseToSend(TreeMap <InetAddress, InetAddress> table){}
+        Set<InetAddress> parseToSend(TreeMap<InetAddress, InetAddress> table){
+            TreeMap<InetAddress, InetAddress> parsed = new TreeMap<>();
+            for (Map.Entry<InetAddress,InetAddress>  entry: table.entrySet()){
+                if(entry.getKey().equals(entry.getValue())){
+                    parsed.put(entry.getKey(),entry.getValue());
+                }
+            }
+            return parsed.keySet();
+        }
 
 
         public void run() {
@@ -20,41 +30,54 @@ public class Adhoc_app implements Runnable {
 
                 while (true) {
 
-                    TreeMap <InetAddress, InetAddress> table= new TreeMap <InetAddress,InetAddress>();
+                    TreeMap<InetAddress,InetAddress> table = new TreeMap<>();
 
                     //Socket cs = ss.accept();
                     byte[] receiveData = new byte[1024];
-                    byte[] sendData = new byte[1024];
+                    //byte[] sendData = new byte[1024];
 
                     //Join multicast group
                     InetAddress group = InetAddress.getByName("FF02::1");
-                    Inet6Address IPAddress = (Inet6Address) Inet6Address.getByName(group);
+                    Inet6Address IPAddress = (Inet6Address) Inet6Address.getByName("FF02::1");
                     ms.joinGroup(group);
 
                     //Send, utiliza o datagram socket para enviar
-                    //TreeMap <InetAddress, InetAddress> tableToSend = table.parseToSend(table);
-                    String tableString = table.toString();
-                    String toSend = "H1"+tableString;
-                    sendData = toSend.getBytes();
-                    DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, 9999);
+                    //String tableString = table.toString();
+                    //String toSend = "H1"+tableString;
+                    //sendData = toSend.getBytes();
+                    Set <InetAddress> parsedKeySet = parseToSend(table);
+                    HelloPacket data = new HelloPacket(parsedKeySet);
+
+                    ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+                    ObjectOutputStream sendData = new ObjectOutputStream(byteOut);
+                    sendData.writeObject(data);
+                    sendData.flush();
+                    byte[] sendDataBytes = byteOut.toByteArray();
+                    DatagramPacket sendPacket = new DatagramPacket(sendDataBytes, sendDataBytes.length, IPAddress, 9999);
                     ds.send(sendPacket);
 
                     //Receive, utiliza o multicast socket para receber
                     DatagramPacket receivedPacket = new DatagramPacket(receiveData, receiveData.length);
                     ms.receive(receivedPacket);
-                    String msg = new String(receivedPacket.getData(), receivedPacket.getOffset(),
+                    ByteArrayInputStream bis = new ByteArrayInputStream(receiveData);
+                    ObjectInput in = null;
+                    in = new ObjectInputStream(bis);
+                    Object o = in.readObject();
+
+                    /*String msg = new String(receivedPacket.getData(), receivedPacket.getOffset(),
                             receivedPacket.getLength());
                     String type = msg.substring(0,1);
                     String ttlString = msg.substring(1,2);
                     String peerTableString = msg.substring(2);
-                    int ttl = parseInt(ttlString);
+                    int ttl = parseInt(ttlString);*/
 
-                    if(type.equals("H")){
+                    if(o instanceof HelloPacket){
+                        HelloPacket received = (HelloPacket) o;
                         InetAddress from = receivedPacket.getAddress();
                         if(!table.containsKey(from)){
                             table.put(from,from);
                         }
-                        //Set<InetAddress> = peerTableString.
+                        Set<InetAddress> peerKeySet = received.getPeers();
                     }
 
 
@@ -75,6 +98,8 @@ public class Adhoc_app implements Runnable {
                 }
             } catch (IOException e) {
                 System.out.println(e);
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
             }
         }
 
