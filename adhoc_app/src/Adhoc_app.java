@@ -7,6 +7,9 @@ import static java.lang.Integer.parseInt;
 
 public class Adhoc_app implements Runnable {
 
+        //TreeMap <InetAddress, InetAddress> parseToSend(TreeMap <InetAddress, InetAddress> table){}
+
+
         public void run() {
 
             try {
@@ -17,19 +20,21 @@ public class Adhoc_app implements Runnable {
 
                 while (true) {
 
-                    TreeMap <Inet6Address, Inet6Address> table= new TreeMap <Inet6Address,Inet6Address>();
+                    TreeMap <InetAddress, InetAddress> table= new TreeMap <InetAddress,InetAddress>();
 
                     //Socket cs = ss.accept();
                     byte[] receiveData = new byte[1024];
                     byte[] sendData = new byte[1024];
-                    InetAddress IPAddress = InetAddress.getByName("localhost");
 
                     //Join multicast group
                     InetAddress group = InetAddress.getByName("FF02::1");
+                    Inet6Address IPAddress = (Inet6Address) Inet6Address.getByName(group);
                     ms.joinGroup(group);
 
                     //Send, utiliza o datagram socket para enviar
-                    String toSend = "H1";
+                    //TreeMap <InetAddress, InetAddress> tableToSend = table.parseToSend(table);
+                    String tableString = table.toString();
+                    String toSend = "H1"+tableString;
                     sendData = toSend.getBytes();
                     DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, 9999);
                     ds.send(sendPacket);
@@ -41,10 +46,15 @@ public class Adhoc_app implements Runnable {
                             receivedPacket.getLength());
                     String type = msg.substring(0,1);
                     String ttlString = msg.substring(1,2);
+                    String peerTableString = msg.substring(2);
                     int ttl = parseInt(ttlString);
 
                     if(type.equals("H")){
                         InetAddress from = receivedPacket.getAddress();
+                        if(!table.containsKey(from)){
+                            table.put(from,from);
+                        }
+                        //Set<InetAddress> = peerTableString.
                     }
 
 
