@@ -78,6 +78,11 @@ public class Adhoc_app implements Runnable {
                             table.put(from,from);
                         }
                         Set<InetAddress> peerKeySet = received.getPeers();
+                        for(InetAddress entry : peerKeySet){
+                            if(!table.containsKey(entry)){
+                                table.put(entry,from);
+                            }
+                        }
                     }
 
 
