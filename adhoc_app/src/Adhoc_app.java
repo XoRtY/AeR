@@ -74,6 +74,9 @@ public class Adhoc_app implements Runnable {
                     if(o instanceof HelloPacket){
                         HelloPacket received = (HelloPacket) o;
                         InetAddress from = receivedPacket.getAddress();
+                        if(table.containsKey(from) && !table.get(from).equals(from)){
+                            table.replace(from,from);
+                        }
                         if(!table.containsKey(from)){
                             table.put(from,from);
                         }
