@@ -4,6 +4,7 @@ import java.lang.String;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.Scanner;
 
 import static java.lang.Integer.parseInt;
 
@@ -22,6 +23,12 @@ public class Adhoc_app implements Runnable {
 
         public void run() {
 
+            Scanner inVars = new Scanner(System.in);
+            System.out.println("Hello Interval in seconds: ");
+            int helloInterval = inVars.nextInt();
+            System.out.println("Dead Interval in seconds: ");
+            int deadInterval = inVars.nextInt();
+
             try {
                 System.out.println(" Server is Running  ");
                 ServerSocket ss = new ServerSocket(9999);
@@ -29,6 +36,8 @@ public class Adhoc_app implements Runnable {
                 MulticastSocket ms = new MulticastSocket(9999);
 
                 while (true) {
+
+                    Thread.sleep(helloInterval*1000);
 
                     TreeMap<InetAddress,InetAddress> table = new TreeMap<>();
 
@@ -107,6 +116,8 @@ public class Adhoc_app implements Runnable {
             } catch (IOException e) {
                 System.out.println(e);
             } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
