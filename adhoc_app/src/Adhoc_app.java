@@ -51,9 +51,6 @@ public class Adhoc_app implements Runnable {
                     ms.joinGroup(group);
 
                     //Send, utiliza o datagram socket para enviar
-                    //String tableString = table.toString();
-                    //String toSend = "H1"+tableString;
-                    //sendData = toSend.getBytes();
                     Set <InetAddress> parsedKeySet = parseToSend(table);  // Prepara o set com os nós a 1 de distancia para enviar por udp
                     HelloPacket data = new HelloPacket(parsedKeySet);     // Cria um objeto com o set
 
@@ -72,13 +69,6 @@ public class Adhoc_app implements Runnable {
                     ObjectInput in = null;                                            // De-serializa o objeto que vem no pacote
                     in = new ObjectInputStream(bis);                                  //
                     Object o = in.readObject();                                       //
-
-                    /*String msg = new String(receivedPacket.getData(), receivedPacket.getOffset(),
-                            receivedPacket.getLength());
-                    String type = msg.substring(0,1);
-                    String ttlString = msg.substring(1,2);
-                    String peerTableString = msg.substring(2);
-                    int ttl = parseInt(ttlString);*/
 
                     if(o instanceof HelloPacket){                                    // Caso o objeto que vem no pacote seja um Hello packet
                         HelloPacket received = (HelloPacket) o;                      // Parse para hello packet
