@@ -26,8 +26,6 @@ public class HelloSender extends Thread implements Runnable{
         Scanner inVars = new Scanner(System.in);
         System.out.println("Hello Interval in seconds: "); //Tempo entre cada hello
         int helloInterval = inVars.nextInt();
-        System.out.println("Dead Interval in seconds: ");  //tempo que fica a espera de um hello
-        int deadInterval = inVars.nextInt();
 
         try {
             System.out.println(" Server is Running  ");
