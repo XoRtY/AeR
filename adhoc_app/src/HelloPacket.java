@@ -1,14 +1,20 @@
 import java.net.InetAddress;
-import java.util.Set;
+import java.util.TreeMap;
 
 public class HelloPacket {
-    Set<InetAddress> directPeers;
+    TreeMap<String,InetAddress> directPeers;
+    String fromName;
 
-    HelloPacket(Set<InetAddress> dirPeers){
-        this.directPeers= dirPeers;
+    HelloPacket(TreeMap<String,InetAddress> dirPeers, String hName){
+        this.directPeers = dirPeers;
+        this.fromName = hName;
     }
 
-    Set<InetAddress> getPeers(){
+    public TreeMap<String,InetAddress> getPeers(){
         return this.directPeers;
+    }
+
+    public String getFromName() {
+        return fromName;
     }
 }

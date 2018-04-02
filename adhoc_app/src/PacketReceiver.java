@@ -1,13 +1,11 @@
 import java.io.*;
 import java.net.*;
-import java.util.Scanner;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 
 public class PacketReceiver extends Thread implements Runnable{
-    TreeMap<InetAddress,InetAddress> table = new TreeMap<>();
+    TreeMap<String,TableEntry> table = new TreeMap<>();
 
-    public PacketReceiver(TreeMap<InetAddress,InetAddress> dadsTable){
+    public PacketReceiver(TreeMap<String,TableEntry> dadsTable){
         this.table = dadsTable;
     }
 
@@ -24,8 +22,6 @@ public class PacketReceiver extends Thread implements Runnable{
             MulticastSocket ms = new MulticastSocket(9999);
 
             while (true) {
-
-                TreeMap<InetAddress,InetAddress> table = new TreeMap<>();
 
                 //Socket cs = ss.accept();
                 byte[] receiveData = new byte[1024];
@@ -46,17 +42,22 @@ public class PacketReceiver extends Thread implements Runnable{
 
                 if(o instanceof HelloPacket){                                    // Caso o objeto que vem no pacote seja um Hello packet
                     HelloPacket received = (HelloPacket) o;                      // Parse para hello packet
+                    String peerName = received.getFromName();
                     InetAddress from = receivedPacket.getAddress();              // IP do transmitter
-                    if(table.containsKey(from) && !table.get(from).equals(from)){   //Caso já tenha este target na tabela de encaminhamento mas tiver mais de 1 de distancia
-                        table.replace(from,from);
+                    if(table.containsKey(peerName) && !table.get(peerName).getNextJump().equals(from)){   //Caso já tenha este target na tabela de encaminhamento mas tiver mais de 1 de distancia
+                        TableEntry aux = new TableEntry(from,from);
+                        table.replace(peerName,aux);
                     }
                     if(!table.containsKey(from)){                                   //Caso não tenha este target na tabela de encaminhamento
-                        table.put(from,from);
+                        TableEntry aux = new TableEntry(from,from);
+                        table.put(peerName,aux);
                     }
-                    Set<InetAddress> peerKeySet = received.getPeers();              //Pega no set com os targets e adiciona-os, pondo como prox salto o router que enviou o pacote
-                    for(InetAddress entry : peerKeySet){
-                        if(!table.containsKey(entry)){
-                            table.put(entry,from);
+                    TreeMap<String,InetAddress> peerKeySet = received.getPeers(); //Pega no set com os targets e adiciona-os, pondo como prox salto o router que enviou o pacote
+
+                    for(Map.Entry<String,InetAddress> entry : peerKeySet.entrySet()){
+                        if(!table.containsKey(entry.getKey())){
+                            TableEntry aux = new TableEntry(entry.getValue(),from);
+                            table.put(entry.getKey(),aux);
                         }
                     }
                 }

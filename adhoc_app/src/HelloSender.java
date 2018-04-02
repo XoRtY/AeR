@@ -1,25 +1,23 @@
 import java.io.*;
 import java.net.*;
-import java.util.Map;
-import java.util.Scanner;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 
 public class HelloSender extends Thread implements Runnable{
-    TreeMap<InetAddress,InetAddress> table = new TreeMap<>();
+    TreeMap<String,TableEntry> table = new TreeMap<>();
 
-    public HelloSender (TreeMap<InetAddress,InetAddress> dadsTable){
+    public HelloSender (TreeMap<String,TableEntry> dadsTable){
         this.table = dadsTable;
     }
 
-    Set<InetAddress> parseToSend(TreeMap<InetAddress, InetAddress> table){        // Cria um set com todos os targets a 1 de distância
-        TreeMap<InetAddress, InetAddress> parsed = new TreeMap<>();
-        for (Map.Entry<InetAddress,InetAddress>  entry: table.entrySet()){
-            if(entry.getKey().equals(entry.getValue())){
-                parsed.put(entry.getKey(),entry.getValue());
+    TreeMap<String,InetAddress> parseToSend(TreeMap<String, TableEntry> table){        // Cria um set com todos os targets a 1 de distância
+        TreeMap<String,InetAddress> parsedTree = new TreeMap<>();
+        for (Map.Entry<String,TableEntry>  entry: table.entrySet()){
+            TableEntry aux = entry.getValue();
+            if(aux.isTTL1()){
+                parsedTree.put(entry.getKey(),entry.getValue().getTarget());
             }
         }
-        return parsed.keySet();
+        return parsedTree;
     }
 
     public void run(){
@@ -35,19 +33,19 @@ public class HelloSender extends Thread implements Runnable{
 
             while (true) {
 
-                TreeMap<InetAddress,InetAddress> table = new TreeMap<>();
-                Inet6Address IPAddress = (Inet6Address) Inet6Address.getByName("FF02::1");  //Ip do próprio
+                InetAddress localhost = InetAddress.getLocalHost();
+                String localHostName = (localhost.getHostName()).trim();
 
                 //Send, utiliza o datagram socket para enviar
-                Set<InetAddress> parsedKeySet = parseToSend(table);  // Prepara o set com os nós a 1 de distancia para enviar por udp
-                HelloPacket data = new HelloPacket(parsedKeySet);     // Cria um objeto com o set
+                TreeMap<String,InetAddress> parsedKeyTree = parseToSend(table);  // Prepara o set com os nós a 1 de distancia para enviar por udp
+                HelloPacket data = new HelloPacket(parsedKeyTree,localHostName);     // Cria um objeto com o set
 
                 ByteArrayOutputStream byteOut = new ByteArrayOutputStream();           //
                 ObjectOutputStream sendData = new ObjectOutputStream(byteOut);         //
                 sendData.writeObject(data);                                            // Serializa o objeto para o poder enviar
                 sendData.flush();                                                      //
                 byte[] sendDataBytes = byteOut.toByteArray();                          //
-                DatagramPacket sendPacket = new DatagramPacket(sendDataBytes, sendDataBytes.length, IPAddress, 9999);  // Prepara o pacote
+                DatagramPacket sendPacket = new DatagramPacket(sendDataBytes, sendDataBytes.length, 9999);  // Prepara o pacote
                 ds.send(sendPacket);   //Envia o pacote
 
                 Thread.sleep(helloInterval*1000); //Espera o tempo entre Hellos

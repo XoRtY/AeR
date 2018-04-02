@@ -1,10 +1,11 @@
 import java.lang.String;
 import java.net.InetAddress;
+import java.util.Map;
 import java.util.TreeMap;
 
 public class Adhoc_app implements Runnable {
 
-    TreeMap<InetAddress,InetAddress> table = new TreeMap<>();
+    TreeMap<String,TableEntry> table = new TreeMap<>();
 
         public void run() {
 
