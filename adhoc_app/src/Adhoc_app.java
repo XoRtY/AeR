@@ -1,7 +1,7 @@
 import java.lang.String;
-import java.net.InetAddress;
-import java.util.Map;
-import java.util.TreeMap;
+import java.io.*;
+import java.net.*;
+import java.util.*;
 
 public class Adhoc_app implements Runnable {
 
