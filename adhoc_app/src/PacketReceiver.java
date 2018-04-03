@@ -61,6 +61,21 @@ public class PacketReceiver extends Thread implements Runnable{
                         }
                     }
                 }
+                if(o instanceof RequestPacket){
+                    RequestPacket received = (RequestPacket) o;
+                    if(!table.containsKey(received.getToName())){
+                        InetAddress localhost = InetAddress.getLocalHost();
+                        String localHostName = (localhost.getHostName()).trim();
+                        received.addVisitedNode(localHostName);
+                        ByteArrayOutputStream byteOut = new ByteArrayOutputStream();           //
+                        ObjectOutputStream sendData = new ObjectOutputStream(byteOut);         //
+                        sendData.writeObject(received);                                             // Serializa o objeto para o poder enviar
+                        sendData.flush();                                                      //
+                        byte[] sendDataBytes = byteOut.toByteArray();                          //
+                        DatagramPacket sendPacket = new DatagramPacket(sendDataBytes, sendDataBytes.length);  // Prepara o pacote
+                        ds.send(sendPacket);
+                    }
+                }
 
             }
         } catch (IOException e) {
