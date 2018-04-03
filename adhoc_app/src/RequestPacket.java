@@ -17,4 +17,8 @@ public class RequestPacket {
     public Set<String> getVisitedNodes() {
         return visitedNodes;
     }
+
+    public void addVisitedNode(String node){
+        this.visitedNodes.add(node);
+    }
 }

@@ -45,7 +45,7 @@ public class HelloSender extends Thread implements Runnable{
                 sendData.writeObject(data);                                            // Serializa o objeto para o poder enviar
                 sendData.flush();                                                      //
                 byte[] sendDataBytes = byteOut.toByteArray();                          //
-                DatagramPacket sendPacket = new DatagramPacket(sendDataBytes, sendDataBytes.length, 9999);  // Prepara o pacote
+                DatagramPacket sendPacket = new DatagramPacket(sendDataBytes, sendDataBytes.length);  // Prepara o pacote
                 ds.send(sendPacket);   //Envia o pacote
 
                 Thread.sleep(helloInterval*1000); //Espera o tempo entre Hellos

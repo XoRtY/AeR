@@ -43,7 +43,7 @@ public class RequestSender extends Thread implements Runnable{
                     sendData.writeObject(req);                                             // Serializa o objeto para o poder enviar
                     sendData.flush();                                                      //
                     byte[] sendDataBytes = byteOut.toByteArray();                          //
-                    DatagramPacket sendPacket = new DatagramPacket(sendDataBytes, sendDataBytes.length, 9999);  // Prepara o pacote
+                    DatagramPacket sendPacket = new DatagramPacket(sendDataBytes, sendDataBytes.length);  // Prepara o pacote
                     ds.send(sendPacket);
                 }
             }
