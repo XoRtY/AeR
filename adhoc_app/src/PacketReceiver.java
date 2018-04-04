@@ -64,12 +64,12 @@ public class PacketReceiver extends Thread implements Runnable {
                     String origin = received.getOriginName();
                     InetAddress localhost = InetAddress.getLocalHost();
                     String localHostName = (localhost.getHostName()).trim();
-                    if(received.getRadius()>0) {                               //Se ainda tiver dentro do radius de procura
+                    //if(received.getRadius()>0) {                               //Se ainda tiver dentro do radius de procura
                         if(localHostName.equals(received.getToName())){        //Se for o nodo que está a ser procurado
-                            if (!table.containsKey(origin)) {
+
                                 TableEntry aux = new TableEntry(received.getOrigin(), receivedPacket.getAddress());     //adiciona a origem à sua tabela de encaminhamento
                                 table.put(received.getOriginName(), aux);
-                            }
+
                             ReplyPacket reply = new ReplyPacket(received.getOriginName(), localHostName);           //prepara um route reply
                             ByteArrayOutputStream byteOut = new ByteArrayOutputStream();           //
                             ObjectOutputStream sendData = new ObjectOutputStream(byteOut);         //
@@ -84,11 +84,10 @@ public class PacketReceiver extends Thread implements Runnable {
                         if (!table.containsKey(received.getToName())) {                             //se nao tiver na sua tabela de encaminhamendo
                             if (origin == null) {                                                   //caso tenha sido o primeiro salto, define o ip de origem
                                 received.setOrigin(receivedPacket.getAddress());
-                            } else {
-                                if (!table.containsKey(origin)) {                                   //caso contrario adiciona o node a sua tabela de encaminhamento (se ainda nao o tiver)
+                            } else {                                 //caso contrario adiciona o node a sua tabela de encaminhamento (se ainda nao o tiver)
                                     TableEntry aux = new TableEntry(received.getOrigin(), receivedPacket.getAddress());
                                     table.put(received.getOriginName(), aux);
-                                }
+
                             }
                             received.decRadius();                                                  // decrementa o radius de pesquisa
                             ByteArrayOutputStream byteOut = new ByteArrayOutputStream();           //
@@ -102,26 +101,27 @@ public class PacketReceiver extends Thread implements Runnable {
                             ds.send(sendPacket);   //re-envia em multicast
                             ds.close();
                         } else {                                            //caso o radius tenha sido ultrapassado
-                            if (!table.containsKey(origin)) {               //adiciona a origem a sua tabela de encaminhamento (caso nao a tenha)
+                                           //adiciona a origem a sua tabela de encaminhamento (caso nao a tenha)
                                 TableEntry aux = new TableEntry(received.getOrigin(), receivedPacket.getAddress());
                                 table.put(received.getOriginName(), aux);
-                            }
+
                             ByteArrayOutputStream byteOut = new ByteArrayOutputStream();           //
                             ObjectOutputStream sendData = new ObjectOutputStream(byteOut);         //
                             sendData.writeObject(received);                                             // Serializa o objeto para o poder enviar
                             sendData.flush();                                                      //
                             byte[] sendDataBytes = byteOut.toByteArray();                          //
+                            InetAddress addressNextJump = table.get(received.getToName()).getNextJump();
                             DatagramPacket sendPacket = new DatagramPacket(sendDataBytes,
                                                                            sendDataBytes.length,
-                                                                           table.get(received.getToName()).getNextJump(),
+                                                                           addressNextJump,
                                                                            9999);  // Prepara o pacote
 
                             DatagramSocket ds = new DatagramSocket();
                             ds.send(sendPacket);                                                   //manda um route reply a dizer que o limite de radius foi atingido
                             ds.close();
                         }
-                    }
-                    else{
+                    //}
+                    /*else{
                         ReplyPacket reply = new ReplyPacket(received.getOriginName());
                         ByteArrayOutputStream byteOut = new ByteArrayOutputStream();           //
                         ObjectOutputStream sendData = new ObjectOutputStream(byteOut);         //
@@ -132,7 +132,7 @@ public class PacketReceiver extends Thread implements Runnable {
                         DatagramSocket ds = new DatagramSocket();
                         ds.send(sendPacket);
                         ds.close();
-                    }
+                    }*/
                 }
 
                 if(o instanceof ReplyPacket){                                                   //caso o pacote seja do tipo route reply
@@ -141,17 +141,17 @@ public class PacketReceiver extends Thread implements Runnable {
                     ReplyPacket reply = (ReplyPacket) o;
                     String origin = reply.getOriginS();
                     if(reply.getTargetS().equals(localHostName)){                               //se for para o proprio
-                        if (reply.isInRadius()){                                                //verifica se o radius foi ultrapassado
+                        //if (reply.isInRadius()){                                                //verifica se o radius foi ultrapassado
                             if(!table.containsKey(origin)) {                                    //adiciona a origem a sua tabela de encaminhamento
                                 TableEntry aux = new TableEntry(reply.getOrigin(), receivedPacket.getAddress());
                                 table.put(reply.getOriginS(), aux);
                             }
                             waitingReply = false;                                               //avisa que já recebeu resposta
-                        }
-                        else{
+                        //}
+                        /*else{
                             System.out.println("Radius limit reached");                         //avisa que o radius foi ultrapassado
                             waitingReply = false;                                               //avisa que recebeu resposta
-                        }
+                        }*/
                     }
                     else{                                                                      //apenas re-encaminha e adiciona a origem a sua tabela de encaminhamento (caso nao a tenha)
                         ByteArrayOutputStream byteOut = new ByteArrayOutputStream();           //

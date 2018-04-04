@@ -24,6 +24,7 @@ public class applayer_worker implements Runnable{
             ObjectInputStream is = new ObjectInputStream(socket.getInputStream());
 
             applayer_packet packet = (applayer_packet) is.readObject();//recebe o pacote
+            socket.close();
             String target = packet.getTarget();
 
             if(this.name.equals(target)){//verifica se o pacote é para este nodo ou para reencaminhar
@@ -36,19 +37,19 @@ public class applayer_worker implements Runnable{
                     Path path = Paths.get("news"+localHostName+".txt");                                        //
                     byte[] data = Files.readAllBytes(path);                                    //lê as suas noticias
                     applayer_packetNoticia toSend = new applayer_packetNoticia(newTarget,null,data,localHostName);
-                    ObjectOutputStream nos = new ObjectOutputStream(socket.getOutputStream());
-                    nos.writeObject(packet);//envia pacote de noticias para o proximo nodo
-                    System.out.println("Mandei noticia para "+newTarget+" atraves de"+table.get(newTarget).getNextJump());
+                    Socket nextNode = new Socket(table.get(newTarget).getNextJump(),9999);
+                    ObjectOutputStream nos = new ObjectOutputStream(nextNode.getOutputStream());
+                    nos.writeObject(toSend);//envia pacote de noticias para o proximo nodo
                     nos.close();
                 }
-                else{//caso seja um pacote de noticias
-                    /*applayer_packetNoticia packetNoticia = (applayer_packetNoticia) packet;                 //Guarda-as num .txt chamado "newsFrom<nodo de onde veio>.txt
+                else{                                                   //caso seja um pacote de noticias
+                    applayer_packetNoticia packetNoticia = (applayer_packetNoticia) packet;                 //Guarda-as num .txt chamado "newsFrom<nodo de onde veio>.txt
                     String news = new String(packetNoticia.getNews(), "UTF-8");
                     String from = packetNoticia.getFrom();
-                    System.out.println("Recebi uma noticia de "+from);
                     PrintWriter out = new PrintWriter("newsFrom"+from+".txt");
                     out.print(news);
-                    System.out.println("News from "+from+" saved.\n");*/
+                    out.close();
+                    System.out.println("News from "+from+" saved.\n");
                 }
             }
             else{//Reencaminhar, conecta ao socket tcp do próximo node

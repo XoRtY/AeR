@@ -95,8 +95,13 @@ public class Adhoc_app implements Runnable {
                             nextNode = new Socket(nextJump, 9999);                                                      //AQUI NUNO
                             ObjectOutputStream nos = new ObjectOutputStream(nextNode.getOutputStream());
                             nos.writeObject(request);  //envia pacote de pedido de noticias para o proximo nodo
+                            ObjectInputStream nis = new ObjectInputStream(nextNode.getInputStream());
+                            Object o = nis.readObject();
+                            applayer_packetNoticia noticia = (applayer_packetNoticia) o;
                             nos.close();               //fecha o socket
                         } catch (IOException e) {
+                            e.printStackTrace();
+                        } catch (ClassNotFoundException e) {
                             e.printStackTrace();
                         }
                     }
