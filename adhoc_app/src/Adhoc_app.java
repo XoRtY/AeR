@@ -2,11 +2,17 @@ import java.lang.String;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.util.UUID;
 
 public class Adhoc_app implements Runnable {
 
     TreeMap<String,TableEntry> table = new TreeMap<>();
     boolean waitingReply = false;
+
+    public static String generateString() {
+        String uuid = UUID.randomUUID().toString();
+        return uuid;
+    }
 
         public void run(){
 
@@ -94,6 +100,10 @@ public class Adhoc_app implements Runnable {
         }
 
     public static void main(String argv[]) throws Exception {
+        String randomNews = generateString();
+        PrintWriter out = new PrintWriter("news.txt");
+        out.print(randomNews);
+
         (new Thread(new Adhoc_app())).start();
     }
 
