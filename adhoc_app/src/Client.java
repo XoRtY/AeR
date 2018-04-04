@@ -3,7 +3,7 @@ import java.net.Socket;
 
 public class Client {
 
-    public static void main(String argv[])
+    /*public static void main(String argv[])
     {
         try{
             Socket socketClient= new Socket("localhost",9999);
@@ -22,5 +22,5 @@ public class Client {
         }catch(Exception e){
             e.printStackTrace();
         }
-    }
+    }*/
 }

@@ -7,59 +7,35 @@ import java.net.*;
 import java.util.*;
 
 public class RequestSender extends Thread implements Runnable{
-    String nodeName;
+    String target;
     Set<String> visited;
-    TreeMap<String,TableEntry> table = new TreeMap<>();
-    boolean waitingReply;
+    int radius;
 
-    public RequestSender (TreeMap<String, TableEntry> dTable, boolean waitingReply){
-        this.table = dTable;
-        this.waitingReply = waitingReply;
+    public RequestSender (String target, int rad){
+        this.target = target;
+        this.radius = rad;
     }
 
     public void run() {
         Scanner vars = new Scanner(System.in);
-        System.out.println("Timeout in seconds: ");
-        int timeout = vars.nextInt();
-        System.out.println("Radius: ");
-        int radius = vars.nextInt();
 
         try {
             System.out.println(" Server is Running  ");
-            ServerSocket ss = new ServerSocket(9999);
             DatagramSocket ds = new DatagramSocket(9999);
-            MulticastSocket ms = new MulticastSocket(9999);
-
-
 
                 InetAddress localhost = InetAddress.getLocalHost();
                 String localHostName = (localhost.getHostName()).trim();
-                RequestPacket req = new RequestPacket(nodeName, visited, localHostName, radius);
+                RequestPacket req = new RequestPacket(target, visited, localHostName, radius);
 
-                /*Iterator it = table.entrySet().iterator();
-                while (it.hasNext()) {
-                    Map.Entry entry =  (Map.Entry) it.next();   // No need, use containsKey
-                    if(req.toName == entry.getKey()) r = true;
-                }*/
+                ByteArrayOutputStream byteOut = new ByteArrayOutputStream();           //
+                ObjectOutputStream sendData = new ObjectOutputStream(byteOut);         //
+                sendData.writeObject(req);                                             // Serializa o objeto para o poder enviar
+                sendData.flush();                                                      //
+                byte[] sendDataBytes = byteOut.toByteArray();                          //
+                DatagramPacket sendPacket = new DatagramPacket(sendDataBytes, sendDataBytes.length);  // Prepara o pacote
+                ds.send(sendPacket);
 
-                if(!table.containsKey(req.getToName())) {
-                    ByteArrayOutputStream byteOut = new ByteArrayOutputStream();           //
-                    ObjectOutputStream sendData = new ObjectOutputStream(byteOut);         //
-                    sendData.writeObject(req);                                             // Serializa o objeto para o poder enviar
-                    sendData.flush();                                                      //
-                    byte[] sendDataBytes = byteOut.toByteArray();                          //
-                    DatagramPacket sendPacket = new DatagramPacket(sendDataBytes, sendDataBytes.length);  // Prepara o pacote
-                    ds.send(sendPacket);
-                }
 
-                int auxTimeout = 0;
-                waitingReply = true;
-
-                while (auxTimeout<timeout && waitingReply){
-                    Thread.sleep(1000);
-                    auxTimeout++;
-                }
-                waitingReply = false;
                 return;
 
         } catch (UnknownHostException e) {
@@ -67,8 +43,6 @@ public class RequestSender extends Thread implements Runnable{
         } catch (SocketException e) {
             e.printStackTrace();
         } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }

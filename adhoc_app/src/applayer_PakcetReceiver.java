@@ -4,11 +4,11 @@ import java.util.*;
 import java.lang.String;
 
 
-public class applayer implements Runnable{
+public class applayer_PakcetReceiver implements Runnable{
     private TreeMap<String,TableEntry> table;
     private String name = "";
 
-    public applayer(TreeMap<String,TableEntry> table){
+    public applayer_PakcetReceiver(TreeMap<String,TableEntry> table){
         this.table = table;
 
     }

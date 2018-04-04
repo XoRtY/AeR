@@ -3,10 +3,12 @@ import java.net.*;
 import java.util.*;
 
 public class HelloSender extends Thread implements Runnable{
-    TreeMap<String,TableEntry> table = new TreeMap<>();
+    TreeMap<String,TableEntry> table;
+    int helloInterval;
 
-    public HelloSender (TreeMap<String,TableEntry> dadsTable){
+    public HelloSender (TreeMap<String,TableEntry> dadsTable, int helloInt){
         this.table = dadsTable;
+        this.helloInterval = helloInt;
     }
 
     TreeMap<String,InetAddress> parseToSend(TreeMap<String, TableEntry> table){        // Cria um set com todos os targets a 1 de distância
@@ -21,9 +23,6 @@ public class HelloSender extends Thread implements Runnable{
     }
 
     public void run(){
-        Scanner inVars = new Scanner(System.in);
-        System.out.println("Hello Interval in seconds: "); //Tempo entre cada hello
-        int helloInterval = inVars.nextInt();
 
         try {
             System.out.println(" Server is Running  ");

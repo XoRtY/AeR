@@ -5,20 +5,18 @@ import java.util.*;
 public class PacketReceiver extends Thread implements Runnable {
     TreeMap<String, TableEntry> table = new TreeMap<>();
     boolean waitingReply;
+    int deadInterval;
 
-    public PacketReceiver(TreeMap<String, TableEntry> dadsTable, boolean waitingReply) {
+    public PacketReceiver(TreeMap<String, TableEntry> dadsTable, boolean waitingReply, int deadInt) {
         this.table = dadsTable;
         this.waitingReply = waitingReply;
+        this.deadInterval = deadInt;
     }
 
     public void run() {
 
-        Scanner inVars = new Scanner(System.in);
-        System.out.println("Dead Interval in seconds: ");  //tempo que fica a espera de um hello
-        int deadInterval = inVars.nextInt();
-
         try {
-            System.out.println(" Server is Running  ");
+            System.out.println(" PacketReceiver is Running  ");
             ServerSocket ss = new ServerSocket(9999);
             DatagramSocket ds = new DatagramSocket(9999);
             MulticastSocket ms = new MulticastSocket(9999);
