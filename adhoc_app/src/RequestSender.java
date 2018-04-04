@@ -1,4 +1,4 @@
-import sun.tools.jconsole.Tab;
+//import sun.tools.jconsole.Tab;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -29,15 +29,17 @@ public class RequestSender extends Thread implements Runnable{
 
             while(true) {
 
-                RequestPacket req = new RequestPacket(nodeName, visited);
+                InetAddress localhost = InetAddress.getLocalHost();
+                String localHostName = (localhost.getHostName()).trim();
+                RequestPacket req = new RequestPacket(nodeName, visited, localHostName);
 
-                Iterator it = table.entrySet().iterator();
+                /*Iterator it = table.entrySet().iterator();
                 while (it.hasNext()) {
-                    Map.Entry entry =  (Map.Entry) it.next();
+                    Map.Entry entry =  (Map.Entry) it.next();   // No need, use containsKey
                     if(req.toName == entry.getKey()) r = true;
-                }
+                }*/
 
-                if(r==false) {
+                if(!table.containsKey(req.getToName())) {
                     ByteArrayOutputStream byteOut = new ByteArrayOutputStream();           //
                     ObjectOutputStream sendData = new ObjectOutputStream(byteOut);         //
                     sendData.writeObject(req);                                             // Serializa o objeto para o poder enviar

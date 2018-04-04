@@ -2,14 +2,14 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
-public class PacketReceiver extends Thread implements Runnable{
-    TreeMap<String,TableEntry> table = new TreeMap<>();
+public class PacketReceiver extends Thread implements Runnable {
+    TreeMap<String, TableEntry> table = new TreeMap<>();
 
-    public PacketReceiver(TreeMap<String,TableEntry> dadsTable){
+    public PacketReceiver(TreeMap<String, TableEntry> dadsTable) {
         this.table = dadsTable;
     }
 
-    public void run(){
+    public void run() {
 
         Scanner inVars = new Scanner(System.in);
         System.out.println("Dead Interval in seconds: ");  //tempo que fica a espera de um hello
@@ -40,39 +40,62 @@ public class PacketReceiver extends Thread implements Runnable{
                 in = new ObjectInputStream(bis);                                  //
                 Object o = in.readObject();                                       //
 
-                if(o instanceof HelloPacket){                                    // Caso o objeto que vem no pacote seja um Hello packet
+                if (o instanceof HelloPacket) {                                    // Caso o objeto que vem no pacote seja um Hello packet
                     HelloPacket received = (HelloPacket) o;                      // Parse para hello packet
                     String peerName = received.getFromName();
                     InetAddress from = receivedPacket.getAddress();              // IP do transmitter
-                    if(table.containsKey(peerName) && !table.get(peerName).getNextJump().equals(from)){   //Caso já tenha este target na tabela de encaminhamento mas tiver mais de 1 de distancia
-                        TableEntry aux = new TableEntry(from,from);
-                        table.replace(peerName,aux);
+                    if (table.containsKey(peerName) && !table.get(peerName).getNextJump().equals(from)) {   //Caso já tenha este target na tabela de encaminhamento mas tiver mais de 1 de distancia
+                        TableEntry aux = new TableEntry(from, from);
+                        table.replace(peerName, aux);
                     }
-                    if(!table.containsKey(from)){                                   //Caso não tenha este target na tabela de encaminhamento
-                        TableEntry aux = new TableEntry(from,from);
-                        table.put(peerName,aux);
+                    if (!table.containsKey(from)) {                                   //Caso não tenha este target na tabela de encaminhamento
+                        TableEntry aux = new TableEntry(from, from);
+                        table.put(peerName, aux);
                     }
-                    TreeMap<String,InetAddress> peerKeySet = received.getPeers(); //Pega no set com os targets e adiciona-os, pondo como prox salto o router que enviou o pacote
+                    TreeMap<String, InetAddress> peerKeySet = received.getPeers(); //Pega no set com os targets e adiciona-os, pondo como prox salto o router que enviou o pacote
 
-                    for(Map.Entry<String,InetAddress> entry : peerKeySet.entrySet()){
-                        if(!table.containsKey(entry.getKey())){
-                            TableEntry aux = new TableEntry(entry.getValue(),from);
-                            table.put(entry.getKey(),aux);
+                    for (Map.Entry<String, InetAddress> entry : peerKeySet.entrySet()) {
+                        if (!table.containsKey(entry.getKey())) {
+                            TableEntry aux = new TableEntry(entry.getValue(), from);
+                            table.put(entry.getKey(), aux);
                         }
                     }
                 }
-                if(o instanceof RequestPacket){
+                if (o instanceof RequestPacket) {
                     RequestPacket received = (RequestPacket) o;
-                    if(!table.containsKey(received.getToName())){
-                        InetAddress localhost = InetAddress.getLocalHost();
-                        String localHostName = (localhost.getHostName()).trim();
+                    String origin = received.getOriginName();
+                    InetAddress localhost = InetAddress.getLocalHost();
+                    String localHostName = (localhost.getHostName()).trim();
+                    if (!table.containsKey(received.getToName())) {
                         received.addVisitedNode(localHostName);
+                        if (origin == null) {
+                            received.setOrigin(receivedPacket.getAddress());
+                        } else {
+                            if(!table.containsKey(origin)) {
+                                TableEntry aux = new TableEntry(received.getOrigin(),receivedPacket.getAddress());
+                                table.put(received.getOriginName(),aux);
+                            }
+                        }
                         ByteArrayOutputStream byteOut = new ByteArrayOutputStream();           //
                         ObjectOutputStream sendData = new ObjectOutputStream(byteOut);         //
                         sendData.writeObject(received);                                             // Serializa o objeto para o poder enviar
                         sendData.flush();                                                      //
                         byte[] sendDataBytes = byteOut.toByteArray();                          //
                         DatagramPacket sendPacket = new DatagramPacket(sendDataBytes, sendDataBytes.length);  // Prepara o pacote
+                        ds.send(sendPacket);
+                    }
+                    else{
+                        if(!table.containsKey(origin)) {
+                            TableEntry aux = new TableEntry(received.getOrigin(),receivedPacket.getAddress());
+                            table.put(received.getOriginName(),aux);
+                        }
+                        ReplyPacket reply = new ReplyPacket(received.getOriginName(),localHostName);
+                        ByteArrayOutputStream byteOut = new ByteArrayOutputStream();           //
+                        ObjectOutputStream sendData = new ObjectOutputStream(byteOut);         //
+                        sendData.writeObject(reply);                                             // Serializa o objeto para o poder enviar
+                        sendData.flush();                                                      //
+                        byte[] sendDataBytes = byteOut.toByteArray();                          //
+                        DatagramPacket sendPacket = new DatagramPacket(sendDataBytes, sendDataBytes.length, table.get(origin).getNextJump(),9999);  // Prepara o pacote
                         ds.send(sendPacket);
                     }
                 }
