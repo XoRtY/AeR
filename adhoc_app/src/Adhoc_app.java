@@ -6,11 +6,12 @@ import java.util.*;
 public class Adhoc_app implements Runnable {
 
     TreeMap<String,TableEntry> table = new TreeMap<>();
+    boolean waitingReply = false;
 
         public void run() {
 
             //Cria o worker que recebe packets e corre o seu run()
-            PacketReceiver receiverWorker = new PacketReceiver(table);
+            PacketReceiver receiverWorker = new PacketReceiver(table, waitingReply);
             receiverWorker.run();
 
             //Cria o worker que manda hello packets e corre o seu run()

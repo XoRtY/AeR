@@ -10,9 +10,12 @@ public class RequestSender extends Thread implements Runnable{
     String nodeName;
     Set<String> visited;
     TreeMap<String,TableEntry> table = new TreeMap<>();
-    boolean r = false;
+    boolean waitingReply;
 
-    public RequestSender (TreeMap<String, TableEntry> dTable){ this.table = dTable; }
+    public RequestSender (TreeMap<String, TableEntry> dTable, boolean waitingReply){
+        this.table = dTable;
+        this.waitingReply = waitingReply;
+    }
 
     public void run() {
         Scanner vars = new Scanner(System.in);
@@ -27,11 +30,11 @@ public class RequestSender extends Thread implements Runnable{
             DatagramSocket ds = new DatagramSocket(9999);
             MulticastSocket ms = new MulticastSocket(9999);
 
-            while(true) {
+
 
                 InetAddress localhost = InetAddress.getLocalHost();
                 String localHostName = (localhost.getHostName()).trim();
-                RequestPacket req = new RequestPacket(nodeName, visited, localHostName);
+                RequestPacket req = new RequestPacket(nodeName, visited, localHostName, radius);
 
                 /*Iterator it = table.entrySet().iterator();
                 while (it.hasNext()) {
@@ -48,13 +51,24 @@ public class RequestSender extends Thread implements Runnable{
                     DatagramPacket sendPacket = new DatagramPacket(sendDataBytes, sendDataBytes.length);  // Prepara o pacote
                     ds.send(sendPacket);
                 }
-            }
+
+                int auxTimeout = 0;
+                waitingReply = true;
+
+                while (auxTimeout<timeout && waitingReply){
+                    Thread.sleep(1000);
+                    auxTimeout++;
+                }
+                waitingReply = false;
+                return;
 
         } catch (UnknownHostException e) {
             e.printStackTrace();
         } catch (SocketException e) {
             e.printStackTrace();
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }

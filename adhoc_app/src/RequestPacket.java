@@ -7,12 +7,14 @@ public class RequestPacket {
     Set<String> visitedNodes;
     InetAddress origin;
     String originName;
+    int radius;
 
-    RequestPacket(String tName, Set<String> vNodes, String sender){
+    RequestPacket(String tName, Set<String> vNodes, String sender, int rad){
         this.toName = tName;
         this.visitedNodes = vNodes;
         this.originName = sender;
         this.origin = null;
+        this.radius = rad-2;
     }
 
     public String getToName() {
@@ -37,5 +39,13 @@ public class RequestPacket {
 
     public String getOriginName() {
         return originName;
+    }
+
+    public int getRadius() {
+        return radius;
+    }
+
+    public void decRadius(){
+        this.radius--;
     }
 }

@@ -4,9 +4,11 @@ import java.util.*;
 
 public class PacketReceiver extends Thread implements Runnable {
     TreeMap<String, TableEntry> table = new TreeMap<>();
+    boolean waitingReply;
 
-    public PacketReceiver(TreeMap<String, TableEntry> dadsTable) {
+    public PacketReceiver(TreeMap<String, TableEntry> dadsTable, boolean waitingReply) {
         this.table = dadsTable;
+        this.waitingReply = waitingReply;
     }
 
     public void run() {
@@ -61,42 +63,84 @@ public class PacketReceiver extends Thread implements Runnable {
                         }
                     }
                 }
+
                 if (o instanceof RequestPacket) {
                     RequestPacket received = (RequestPacket) o;
                     String origin = received.getOriginName();
                     InetAddress localhost = InetAddress.getLocalHost();
                     String localHostName = (localhost.getHostName()).trim();
-                    if (!table.containsKey(received.getToName())) {
-                        received.addVisitedNode(localHostName);
-                        if (origin == null) {
-                            received.setOrigin(receivedPacket.getAddress());
-                        } else {
-                            if(!table.containsKey(origin)) {
-                                TableEntry aux = new TableEntry(received.getOrigin(),receivedPacket.getAddress());
-                                table.put(received.getOriginName(),aux);
+                    if(received.getRadius()>0) {
+                        if (!table.containsKey(received.getToName())) {
+                            received.addVisitedNode(localHostName);
+                            if (origin == null) {
+                                received.setOrigin(receivedPacket.getAddress());
+                            } else {
+                                if (!table.containsKey(origin)) {
+                                    TableEntry aux = new TableEntry(received.getOrigin(), receivedPacket.getAddress());
+                                    table.put(received.getOriginName(), aux);
+                                }
                             }
+                            received.decRadius();
+                            ByteArrayOutputStream byteOut = new ByteArrayOutputStream();           //
+                            ObjectOutputStream sendData = new ObjectOutputStream(byteOut);         //
+                            sendData.writeObject(received);                                             // Serializa o objeto para o poder enviar
+                            sendData.flush();                                                      //
+                            byte[] sendDataBytes = byteOut.toByteArray();                          //
+                            DatagramPacket sendPacket = new DatagramPacket(sendDataBytes, sendDataBytes.length);  // Prepara o pacote
+                            ds.send(sendPacket);
+                        } else {
+                            if (!table.containsKey(origin)) {
+                                TableEntry aux = new TableEntry(received.getOrigin(), receivedPacket.getAddress());
+                                table.put(received.getOriginName(), aux);
+                            }
+                            ReplyPacket reply = new ReplyPacket(received.getOriginName(), localHostName);
+                            ByteArrayOutputStream byteOut = new ByteArrayOutputStream();           //
+                            ObjectOutputStream sendData = new ObjectOutputStream(byteOut);         //
+                            sendData.writeObject(reply);                                             // Serializa o objeto para o poder enviar
+                            sendData.flush();                                                      //
+                            byte[] sendDataBytes = byteOut.toByteArray();                          //
+                            DatagramPacket sendPacket = new DatagramPacket(sendDataBytes, sendDataBytes.length, table.get(origin).getNextJump(), 9999);  // Prepara o pacote
+                            ds.send(sendPacket);
                         }
-                        ByteArrayOutputStream byteOut = new ByteArrayOutputStream();           //
-                        ObjectOutputStream sendData = new ObjectOutputStream(byteOut);         //
-                        sendData.writeObject(received);                                             // Serializa o objeto para o poder enviar
-                        sendData.flush();                                                      //
-                        byte[] sendDataBytes = byteOut.toByteArray();                          //
-                        DatagramPacket sendPacket = new DatagramPacket(sendDataBytes, sendDataBytes.length);  // Prepara o pacote
-                        ds.send(sendPacket);
                     }
                     else{
-                        if(!table.containsKey(origin)) {
-                            TableEntry aux = new TableEntry(received.getOrigin(),receivedPacket.getAddress());
-                            table.put(received.getOriginName(),aux);
-                        }
-                        ReplyPacket reply = new ReplyPacket(received.getOriginName(),localHostName);
+                        ReplyPacket reply = new ReplyPacket(received.getOriginName());
                         ByteArrayOutputStream byteOut = new ByteArrayOutputStream();           //
                         ObjectOutputStream sendData = new ObjectOutputStream(byteOut);         //
-                        sendData.writeObject(reply);                                             // Serializa o objeto para o poder enviar
+                        sendData.writeObject(reply);                                           // Serializa o objeto para o poder enviar
                         sendData.flush();                                                      //
                         byte[] sendDataBytes = byteOut.toByteArray();                          //
-                        DatagramPacket sendPacket = new DatagramPacket(sendDataBytes, sendDataBytes.length, table.get(origin).getNextJump(),9999);  // Prepara o pacote
+                        DatagramPacket sendPacket = new DatagramPacket(sendDataBytes, sendDataBytes.length, table.get(origin).getNextJump(), 9999);  // Prepara o pacote
                         ds.send(sendPacket);
+                    }
+                }
+
+                if(o instanceof ReplyPacket){
+                    InetAddress localhost = InetAddress.getLocalHost();
+                    String localHostName = (localhost.getHostName()).trim();
+                    ReplyPacket reply = (ReplyPacket) o;
+                    String origin = reply.getOriginS();
+                    if(reply.getTargetS().equals(localHostName)){
+                        if (reply.isInRadius()){
+                            if(!table.containsKey(origin)) {
+                                TableEntry aux = new TableEntry(reply.getOrigin(), receivedPacket.getAddress());
+                                table.put(reply.getOriginS(), aux);
+                            }
+                            waitingReply = false;
+                        }
+                    }
+                    else{
+                        ByteArrayOutputStream byteOut = new ByteArrayOutputStream();           //
+                        ObjectOutputStream sendData = new ObjectOutputStream(byteOut);         //
+                        sendData.writeObject(reply);                                           // Serializa o objeto para o poder enviar
+                        sendData.flush();                                                      //
+                        byte[] sendDataBytes = byteOut.toByteArray();                          //
+                        DatagramPacket sendPacket = new DatagramPacket(sendDataBytes, sendDataBytes.length, table.get(origin).getNextJump(), 9999);  // Prepara o pacote
+                        ds.send(sendPacket);
+                        if(!table.containsKey(origin)) {
+                            TableEntry aux = new TableEntry(reply.getOrigin(), receivedPacket.getAddress());
+                            table.put(reply.getOriginS(), aux);
+                        }
                     }
                 }
 

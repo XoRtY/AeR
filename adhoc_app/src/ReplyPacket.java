@@ -5,11 +5,18 @@ public class ReplyPacket {
     String targetS;
     String originS;
     InetAddress origin;
+    boolean inRadius;
 
     public ReplyPacket (String target, String origin){
         this.targetS = target;
         this.originS = origin;
         this.origin = null;
+        this.inRadius = true;
+    }
+
+    public ReplyPacket(String target){
+        this.targetS = target;
+        this.inRadius = false;
     }
 
     public void setOrigin(InetAddress origin) {
@@ -26,5 +33,9 @@ public class ReplyPacket {
 
     public String getTargetS() {
         return targetS;
+    }
+
+    public boolean isInRadius() {
+        return inRadius;
     }
 }
