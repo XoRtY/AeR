@@ -61,7 +61,7 @@ public class Adhoc_app implements Runnable {
                     InetAddress nextJump = table.get(targetNews).getNextJump();  //pega no proximo salto
                     Socket nextNode = null;
                     try {
-                        nextNode = new Socket(nextJump, 9999);                                         //prepara o socket para o proximo nodo
+                        nextNode = new Socket(nextJump, 9999);                                         //prepara o socket para o proximo nodo   //AQUI NUNO
                         ObjectOutputStream nos = new ObjectOutputStream(nextNode.getOutputStream());         //serializa
                         nos.writeObject(request);                                                           //envia pacote para o proximo nodo
                         nos.close();                                                                         //fecha o socket
@@ -92,7 +92,7 @@ public class Adhoc_app implements Runnable {
                         InetAddress nextJump = table.get(targetNews).getNextJump();
                         Socket nextNode = null;
                         try {
-                            nextNode = new Socket(nextJump, 9999);
+                            nextNode = new Socket(nextJump, 9999);                                                      //AQUI NUNO
                             ObjectOutputStream nos = new ObjectOutputStream(nextNode.getOutputStream());
                             nos.writeObject(request);  //envia pacote de pedido de noticias para o proximo nodo
                             nos.close();               //fecha o socket
