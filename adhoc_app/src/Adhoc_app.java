@@ -13,77 +13,83 @@ public class Adhoc_app implements Runnable {
             Scanner inVars = new Scanner(System.in);
 
             //Cria o worker que recebe packets e corre o seu run()
-            System.out.println("Dead Interval in seconds: \n");  //tempo que fica a espera de um hello
+            System.out.println("Dead Interval in seconds:");  //tempo que fica a espera de um hello
             int deadInterval = inVars.nextInt();
             PacketReceiver receiverWorker = new PacketReceiver(table, waitingReply, deadInterval);
             receiverWorker.run();
 
             //Cria o worker que manda hello packets e corre o seu run()
-            System.out.println("Hello Interval in seconds: \n"); //Tempo entre cada hello
+            System.out.println("Hello Interval in seconds:"); //Tempo entre cada hello
             int helloInterval = inVars.nextInt();
             HelloSender senderWorker = new HelloSender(table, helloInterval);
             senderWorker.run();
 
             //Cria o worker que recebe packets tcp
             applayer_PakcetReceiver receiverWorkerTcp = new applayer_PakcetReceiver(table);
-            receiverWorker.run();
+            receiverWorkerTcp.run();
 
-            String inLoop = "y";
+
+            String inLoop = "y"; //variavel de verificação do loop
             InetAddress localhost = null;
             try {
                 localhost = InetAddress.getLocalHost();
             } catch (UnknownHostException e) {
                 e.printStackTrace();
             }
+            assert localhost != null;
             String localHostName = (localhost.getHostName()).trim();
+
+            //Entra no loop de pedir noticias
             while(inLoop.equals("y")){
-                System.out.println("News from:\n");
-                String targetNews = inVars.next();
-                if (table.containsKey(targetNews)){
-                    applayer_packetPedido request = new applayer_packetPedido(targetNews,null,localHostName);
-                    InetAddress nextJump = table.get(targetNews).getNextJump();
+                System.out.println("News from:");
+                String targetNews = inVars.next(); //Pede um target para pedir noticias
+                if (table.containsKey(targetNews)){  //Se estiver na tabela de encaminhamento
+                    applayer_packetPedido request = new applayer_packetPedido(targetNews,null,localHostName);  //Cria um packet de pedido de noticias
+                    InetAddress nextJump = table.get(targetNews).getNextJump();  //pega no proximo salto
                     Socket nextNode = null;
                     try {
-                        nextNode = new Socket(nextJump, 9999);
-                        ObjectOutputStream nos = new ObjectOutputStream(nextNode.getOutputStream());
-                        nos.writeObject(request);//envia pacote para o proximo nodo
-                        nos.close();
+                        nextNode = new Socket(nextJump, 9999);                                         //prepara o socket para o proximo nodo
+                        ObjectOutputStream nos = new ObjectOutputStream(nextNode.getOutputStream());         //serializa
+                        nos.writeObject(request);                                                           //envia pacote para o proximo nodo
+                        nos.close();                                                                         //fecha o socket
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
-                else{
-                    System.out.println("Target not in current table, insert radius for search:");
+                else{                                                                                       //Se o target não está na tabela
+                    System.out.println("Target not in current table, insert radius for search:");           //Pergunta o maximo numero de saltos
                     int radius = inVars.nextInt();
-                    System.out.println("Insert desired timeout time, in seconds:");
+                    System.out.println("Insert desired timeout time, in seconds:");                         //Pergunta o tempo de timeout
                     int timeout = inVars.nextInt();
-                    RequestSender requestWorker = new RequestSender(targetNews, radius);
-                    requestWorker.run();
+                    RequestSender requestWorker = new RequestSender(targetNews, radius);                    //Cria um worker de routeRequest
+                    requestWorker.run();                                                                    //Corre-o
                     int timeoutAux = 0;
                     waitingReply = true;
-                    while(waitingReply | timeoutAux<timeout){
+                    while(waitingReply | timeoutAux<timeout){                                               //Enquanto nao receber resposta ou passar o tempo
                         try {
                             Thread.sleep(1000);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
-                        timeoutAux++;
+                        timeoutAux++;                                                                        //incrementa o tempo
                     }
-                    requestWorker.interrupt();
-                    if (timeoutAux<timeout){
-                        applayer_packetPedido request = new applayer_packetPedido(targetNews,null,localHostName);
+                    requestWorker.interrupt();                                                               //para o request worker
+                    if (timeoutAux<timeout){                                                                 //Se não passar o tempo de timeout
+                        applayer_packetPedido request = new applayer_packetPedido(targetNews,null,localHostName);  //cria o pedido de noticias
                         InetAddress nextJump = table.get(targetNews).getNextJump();
                         Socket nextNode = null;
                         try {
                             nextNode = new Socket(nextJump, 9999);
                             ObjectOutputStream nos = new ObjectOutputStream(nextNode.getOutputStream());
-                            nos.writeObject(request);//envia pacote para o proximo nodo
-                            nos.close();
+                            nos.writeObject(request);//envia pacote de pedido de noticias para o proximo nodo
+                            nos.close();               //fecha o socket
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
                     }
                 }
+                System.out.println("Pretende continuar?(y for yes, n for no)");         //pede a variavel de continuação no loop
+                inLoop = inVars.next();
             }
         }
 

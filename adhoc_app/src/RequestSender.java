@@ -33,7 +33,7 @@ public class RequestSender extends Thread implements Runnable{
                 sendData.flush();                                                      //
                 byte[] sendDataBytes = byteOut.toByteArray();                          //
                 DatagramPacket sendPacket = new DatagramPacket(sendDataBytes, sendDataBytes.length);  // Prepara o pacote
-                ds.send(sendPacket);
+                ds.send(sendPacket);                                                   //envia pedido de route para o proximo nodo
                 ds.close();
 
                 return;

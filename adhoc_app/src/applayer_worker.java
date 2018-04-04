@@ -28,21 +28,21 @@ public class applayer_worker implements Runnable{
             String target = packet.getTarget();
 
             if(this.name.compareTo(target) == 0){//verifica se o pacote é para este nodo ou para reencaminhar
-                if (packet instanceof applayer_packetPedido){
-                    applayer_packetPedido packetPedido = (applayer_packetPedido) packet;
-                    String newTarget = packetPedido.getFrom();
-                    Path path = Paths.get("/news.txt");
-                    byte[] data = Files.readAllBytes(path);
+                if (packet instanceof applayer_packetPedido){                          //Se o pacote for do tipo pedido de noticia
+                    applayer_packetPedido packetPedido = (applayer_packetPedido) packet;       //cast
+                    String newTarget = packetPedido.getFrom();                                 //destino
+                    Path path = Paths.get("/news.txt");                                        //
+                    byte[] data = Files.readAllBytes(path);                                    //lê as suas noticias
                     InetAddress localhost = InetAddress.getLocalHost();
                     String localHostName = (localhost.getHostName()).trim();
                     applayer_packetNoticia toSend = new applayer_packetNoticia(newTarget,null,data,localHostName);
                     Socket nextNode = new Socket(table.get(newTarget).getNextJump(),9999);
                     ObjectOutputStream nos = new ObjectOutputStream(nextNode.getOutputStream());
-                    nos.writeObject(packet);//envia pacote para o proximo nodo
+                    nos.writeObject(packet);//envia pacote de noticias para o proximo nodo
                     nos.close();
                 }
-                else{
-                    applayer_packetNoticia packetNoticia = (applayer_packetNoticia) packet;
+                else{                                                   //caso seja um pacote de noticias
+                    applayer_packetNoticia packetNoticia = (applayer_packetNoticia) packet;                 //Guarda-as num .txt chamado "newsFrom<nodo de onde veio>.txt
                     String news = new String(packetNoticia.getNews(), "UTF-8");
                     String from = packetNoticia.getFrom();
                     PrintWriter out = new PrintWriter("newsFrom"+from+".txt");
