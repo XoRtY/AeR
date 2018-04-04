@@ -14,7 +14,7 @@ public class RequestPacket {
         this.visitedNodes = vNodes;
         this.originName = sender;
         this.origin = null;
-        this.radius = rad-2;
+        this.radius = rad;
     }
 
     public String getToName() {

@@ -68,6 +68,20 @@ public class PacketReceiver extends Thread implements Runnable {
                     InetAddress localhost = InetAddress.getLocalHost();
                     String localHostName = (localhost.getHostName()).trim();
                     if(received.getRadius()>0) {
+                        if(localHostName.equals(received.getToName())){
+                            if (!table.containsKey(origin)) {
+                                TableEntry aux = new TableEntry(received.getOrigin(), receivedPacket.getAddress());
+                                table.put(received.getOriginName(), aux);
+                            }
+                            ReplyPacket reply = new ReplyPacket(received.getOriginName(), localHostName);
+                            ByteArrayOutputStream byteOut = new ByteArrayOutputStream();           //
+                            ObjectOutputStream sendData = new ObjectOutputStream(byteOut);         //
+                            sendData.writeObject(reply);                                             // Serializa o objeto para o poder enviar
+                            sendData.flush();                                                      //
+                            byte[] sendDataBytes = byteOut.toByteArray();
+                            DatagramPacket sendPacket = new DatagramPacket(sendDataBytes, sendDataBytes.length, table.get(origin).getNextJump(), 9999);
+                            ds.send(sendPacket);
+                        }
                         if (!table.containsKey(received.getToName())) {
                             received.addVisitedNode(localHostName);
                             if (origin == null) {
@@ -91,13 +105,15 @@ public class PacketReceiver extends Thread implements Runnable {
                                 TableEntry aux = new TableEntry(received.getOrigin(), receivedPacket.getAddress());
                                 table.put(received.getOriginName(), aux);
                             }
-                            ReplyPacket reply = new ReplyPacket(received.getOriginName(), localHostName);
                             ByteArrayOutputStream byteOut = new ByteArrayOutputStream();           //
                             ObjectOutputStream sendData = new ObjectOutputStream(byteOut);         //
-                            sendData.writeObject(reply);                                             // Serializa o objeto para o poder enviar
+                            sendData.writeObject(received);                                             // Serializa o objeto para o poder enviar
                             sendData.flush();                                                      //
                             byte[] sendDataBytes = byteOut.toByteArray();                          //
-                            DatagramPacket sendPacket = new DatagramPacket(sendDataBytes, sendDataBytes.length, table.get(origin).getNextJump(), 9999);  // Prepara o pacote
+                            DatagramPacket sendPacket = new DatagramPacket(sendDataBytes,
+                                                                           sendDataBytes.length,
+                                                                           table.get(received.getToName()).getNextJump(),
+                                                                           9999);  // Prepara o pacote
                             ds.send(sendPacket);
                         }
                     }

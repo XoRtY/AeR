@@ -2,6 +2,9 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 import java.lang.String;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.Path;
 
 public class applayer_worker implements Runnable{
     private TreeMap<String,TableEntry> table; //tabela
@@ -18,7 +21,6 @@ public class applayer_worker implements Runnable{
 
     public void run(){
         try {
-            ObjectOutputStream os = new ObjectOutputStream(socket.getOutputStream());
             ObjectInputStream is = new ObjectInputStream(socket.getInputStream());
 
             applayer_packet packet = (applayer_packet) is.readObject();//recebe o pacote
@@ -26,15 +28,31 @@ public class applayer_worker implements Runnable{
             String target = packet.getTarget();
 
             if(this.name.compareTo(target) == 0){//verifica se o pacote é para este nodo ou para reencaminhar
-
+                if (packet instanceof applayer_packetPedido){
+                    applayer_packetPedido packetPedido = (applayer_packetPedido) packet;
+                    String newTarget = packetPedido.getFrom();
+                    Path path = Paths.get("/news.txt");
+                    byte[] data = Files.readAllBytes(path);
+                    InetAddress localhost = InetAddress.getLocalHost();
+                    String localHostName = (localhost.getHostName()).trim();
+                    applayer_packetNoticia toSend = new applayer_packetNoticia(newTarget,null,data,localHostName);
+                    Socket nextNode = new Socket(table.get(newTarget).getNextJump(),9999);
+                    ObjectOutputStream nos = new ObjectOutputStream(nextNode.getOutputStream());
+                    nos.writeObject(packet);//envia pacote para o proximo nodo
+                    nos.close();
+                }
+                else{
+                    applayer_packetNoticia packetNoticia = (applayer_packetNoticia) packet;
+                    String news = new String(packetNoticia.getNews(), "UTF-8");
+                    String from = packetNoticia.getFrom();
+                    PrintWriter out = new PrintWriter("newsFrom"+from+".txt");
+                    out.print(news);
+                }
             }
-            else{//Reencaminhar, conecta ao socket tcp do próximo nodo
-                TableEntry mytable = table.get(name);
-                String nextNodename = packet.popNode();//consulta o proximo nodo fazendo pop da stack contida no pacote
-                InetAddress nextNodeAddress = mytable.getNextJump();//Retificar se correta esta linha
-                Socket nextNode = new Socket(nextNodeAddress, 9990);
+            else{//Reencaminhar, conecta ao socket tcp do próximo node
+                InetAddress nextJump = table.get(target).getNextJump();
+                Socket nextNode = new Socket(nextJump, 9999);
                 ObjectOutputStream nos = new ObjectOutputStream(nextNode.getOutputStream());
-                ObjectInputStream nis = new ObjectInputStream(nextNode.getInputStream());
                 nos.writeObject(packet);//envia pacote para o proximo nodo
                 nos.close();
             }
