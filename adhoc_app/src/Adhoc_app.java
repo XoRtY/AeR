@@ -8,7 +8,7 @@ public class Adhoc_app implements Runnable {
     TreeMap<String,TableEntry> table = new TreeMap<>();
     boolean waitingReply = false;
 
-        public void run() {
+        public void run(){
 
             Scanner inVars = new Scanner(System.in);
 
@@ -29,11 +29,28 @@ public class Adhoc_app implements Runnable {
             receiverWorker.run();
 
             String inLoop = "y";
+            InetAddress localhost = null;
+            try {
+                localhost = InetAddress.getLocalHost();
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            }
+            String localHostName = (localhost.getHostName()).trim();
             while(inLoop.equals("y")){
                 System.out.println("News from:\n");
-                String targetNews = inVars.nextLine();
-                if (table.containsKey(targetNews)){ //Pode mandar o packet pedido
-
+                String targetNews = inVars.next();
+                if (table.containsKey(targetNews)){
+                    applayer_packetPedido request = new applayer_packetPedido(targetNews,null,localHostName);
+                    InetAddress nextJump = table.get(targetNews).getNextJump();
+                    Socket nextNode = null;
+                    try {
+                        nextNode = new Socket(nextJump, 9999);
+                        ObjectOutputStream nos = new ObjectOutputStream(nextNode.getOutputStream());
+                        nos.writeObject(request);//envia pacote para o proximo nodo
+                        nos.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
                 else{
                     System.out.println("Target not in current table, insert radius for search:");
@@ -53,8 +70,18 @@ public class Adhoc_app implements Runnable {
                         timeoutAux++;
                     }
                     requestWorker.interrupt();
-                    if (timeoutAux<timeout){  //Pode mandar o packet pedido
-
+                    if (timeoutAux<timeout){
+                        applayer_packetPedido request = new applayer_packetPedido(targetNews,null,localHostName);
+                        InetAddress nextJump = table.get(targetNews).getNextJump();
+                        Socket nextNode = null;
+                        try {
+                            nextNode = new Socket(nextJump, 9999);
+                            ObjectOutputStream nos = new ObjectOutputStream(nextNode.getOutputStream());
+                            nos.writeObject(request);//envia pacote para o proximo nodo
+                            nos.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
             }

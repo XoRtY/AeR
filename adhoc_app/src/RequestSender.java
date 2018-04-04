@@ -34,7 +34,7 @@ public class RequestSender extends Thread implements Runnable{
                 byte[] sendDataBytes = byteOut.toByteArray();                          //
                 DatagramPacket sendPacket = new DatagramPacket(sendDataBytes, sendDataBytes.length);  // Prepara o pacote
                 ds.send(sendPacket);
-
+                ds.close();
 
                 return;
 

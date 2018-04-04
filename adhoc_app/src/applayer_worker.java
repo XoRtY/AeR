@@ -47,6 +47,7 @@ public class applayer_worker implements Runnable{
                     String from = packetNoticia.getFrom();
                     PrintWriter out = new PrintWriter("newsFrom"+from+".txt");
                     out.print(news);
+                    System.out.println("News from "+from+" saved.\n");
                 }
             }
             else{//Reencaminhar, conecta ao socket tcp do próximo node

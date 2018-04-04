@@ -26,11 +26,10 @@ public class HelloSender extends Thread implements Runnable{
 
         try {
             System.out.println(" Server is Running  ");
-            ServerSocket ss = new ServerSocket(9999);
-            DatagramSocket ds = new DatagramSocket(9999);
-            MulticastSocket ms = new MulticastSocket(9999);
 
             while (true) {
+
+                DatagramSocket ds = new DatagramSocket(9999);
 
                 InetAddress localhost = InetAddress.getLocalHost();
                 String localHostName = (localhost.getHostName()).trim();
@@ -46,6 +45,8 @@ public class HelloSender extends Thread implements Runnable{
                 byte[] sendDataBytes = byteOut.toByteArray();                          //
                 DatagramPacket sendPacket = new DatagramPacket(sendDataBytes, sendDataBytes.length);  // Prepara o pacote
                 ds.send(sendPacket);   //Envia o pacote
+
+                ds.close();
 
                 Thread.sleep(helloInterval*1000); //Espera o tempo entre Hellos
 

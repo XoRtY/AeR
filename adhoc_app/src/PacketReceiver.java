@@ -17,8 +17,6 @@ public class PacketReceiver extends Thread implements Runnable {
 
         try {
             System.out.println(" PacketReceiver is Running  ");
-            ServerSocket ss = new ServerSocket(9999);
-            DatagramSocket ds = new DatagramSocket(9999);
             MulticastSocket ms = new MulticastSocket(9999);
 
             while (true) {
@@ -80,7 +78,9 @@ public class PacketReceiver extends Thread implements Runnable {
                             sendData.flush();                                                      //
                             byte[] sendDataBytes = byteOut.toByteArray();
                             DatagramPacket sendPacket = new DatagramPacket(sendDataBytes, sendDataBytes.length, table.get(origin).getNextJump(), 9999);
+                            DatagramSocket ds = new DatagramSocket(9999);
                             ds.send(sendPacket);
+                            ds.close();
                         }
                         if (!table.containsKey(received.getToName())) {
                             received.addVisitedNode(localHostName);
@@ -99,7 +99,9 @@ public class PacketReceiver extends Thread implements Runnable {
                             sendData.flush();                                                      //
                             byte[] sendDataBytes = byteOut.toByteArray();                          //
                             DatagramPacket sendPacket = new DatagramPacket(sendDataBytes, sendDataBytes.length);  // Prepara o pacote
+                            DatagramSocket ds = new DatagramSocket(9999);
                             ds.send(sendPacket);
+                            ds.close();
                         } else {
                             if (!table.containsKey(origin)) {
                                 TableEntry aux = new TableEntry(received.getOrigin(), receivedPacket.getAddress());
@@ -114,7 +116,10 @@ public class PacketReceiver extends Thread implements Runnable {
                                                                            sendDataBytes.length,
                                                                            table.get(received.getToName()).getNextJump(),
                                                                            9999);  // Prepara o pacote
+
+                            DatagramSocket ds = new DatagramSocket(9999);
                             ds.send(sendPacket);
+                            ds.close();
                         }
                     }
                     else{
@@ -125,7 +130,9 @@ public class PacketReceiver extends Thread implements Runnable {
                         sendData.flush();                                                      //
                         byte[] sendDataBytes = byteOut.toByteArray();                          //
                         DatagramPacket sendPacket = new DatagramPacket(sendDataBytes, sendDataBytes.length, table.get(origin).getNextJump(), 9999);  // Prepara o pacote
+                        DatagramSocket ds = new DatagramSocket(9999);
                         ds.send(sendPacket);
+                        ds.close();
                     }
                 }
 
@@ -150,7 +157,9 @@ public class PacketReceiver extends Thread implements Runnable {
                         sendData.flush();                                                      //
                         byte[] sendDataBytes = byteOut.toByteArray();                          //
                         DatagramPacket sendPacket = new DatagramPacket(sendDataBytes, sendDataBytes.length, table.get(origin).getNextJump(), 9999);  // Prepara o pacote
+                        DatagramSocket ds = new DatagramSocket(9999);
                         ds.send(sendPacket);
+                        ds.close();
                         if(!table.containsKey(origin)) {
                             TableEntry aux = new TableEntry(reply.getOrigin(), receivedPacket.getAddress());
                             table.put(reply.getOriginS(), aux);
