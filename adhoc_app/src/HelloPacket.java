@@ -1,7 +1,8 @@
+import java.io.Serializable;
 import java.net.InetAddress;
 import java.util.TreeMap;
 
-public class HelloPacket {
+public class HelloPacket implements Serializable {
     TreeMap<String,InetAddress> directPeers;
     String fromName;
 

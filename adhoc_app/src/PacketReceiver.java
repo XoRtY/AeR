@@ -17,10 +17,9 @@ public class PacketReceiver extends Thread implements Runnable {
 
         try {
             System.out.println(" PacketReceiver is Running  ");
-            MulticastSocket ms = new MulticastSocket(9999);
 
             while (true) {
-
+                MulticastSocket ms = new MulticastSocket(9999);
                 //Socket cs = ss.accept();
                 byte[] receiveData = new byte[1024];
                 //byte[] sendData = new byte[1024];
@@ -46,7 +45,7 @@ public class PacketReceiver extends Thread implements Runnable {
                         TableEntry aux = new TableEntry(from, from);
                         table.replace(peerName, aux);
                     }
-                    if (!table.containsKey(from)) {                                   //Caso não tenha este target na tabela de encaminhamento
+                    if (!table.containsKey(peerName)) {                                   //Caso não tenha este target na tabela de encaminhamento
                         TableEntry aux = new TableEntry(from, from);
                         table.put(peerName, aux);
                     }
@@ -78,12 +77,11 @@ public class PacketReceiver extends Thread implements Runnable {
                             sendData.flush();                                                      //
                             byte[] sendDataBytes = byteOut.toByteArray();
                             DatagramPacket sendPacket = new DatagramPacket(sendDataBytes, sendDataBytes.length, table.get(origin).getNextJump(), 9999);
-                            DatagramSocket ds = new DatagramSocket(9999);
+                            DatagramSocket ds = new DatagramSocket();
                             ds.send(sendPacket);                                                    //envia o route reply para o proximo nodo
                             ds.close();
                         }
                         if (!table.containsKey(received.getToName())) {                             //se nao tiver na sua tabela de encaminhamendo
-                            received.addVisitedNode(localHostName);
                             if (origin == null) {                                                   //caso tenha sido o primeiro salto, define o ip de origem
                                 received.setOrigin(receivedPacket.getAddress());
                             } else {
@@ -98,8 +96,9 @@ public class PacketReceiver extends Thread implements Runnable {
                             sendData.writeObject(received);                                        // Serializa o objeto para o poder enviar
                             sendData.flush();                                                      //
                             byte[] sendDataBytes = byteOut.toByteArray();                          //
-                            DatagramPacket sendPacket = new DatagramPacket(sendDataBytes, sendDataBytes.length);  // Prepara o pacote
-                            DatagramSocket ds = new DatagramSocket(9999);
+                            InetAddress target = InetAddress.getByName("FF02::1");
+                            DatagramPacket sendPacket = new DatagramPacket(sendDataBytes, sendDataBytes.length, target,9999);  // Prepara o pacote
+                            DatagramSocket ds = new DatagramSocket();
                             ds.send(sendPacket);   //re-envia em multicast
                             ds.close();
                         } else {                                            //caso o radius tenha sido ultrapassado
@@ -117,7 +116,7 @@ public class PacketReceiver extends Thread implements Runnable {
                                                                            table.get(received.getToName()).getNextJump(),
                                                                            9999);  // Prepara o pacote
 
-                            DatagramSocket ds = new DatagramSocket(9999);
+                            DatagramSocket ds = new DatagramSocket();
                             ds.send(sendPacket);                                                   //manda um route reply a dizer que o limite de radius foi atingido
                             ds.close();
                         }
@@ -130,7 +129,7 @@ public class PacketReceiver extends Thread implements Runnable {
                         sendData.flush();                                                      //
                         byte[] sendDataBytes = byteOut.toByteArray();                          //
                         DatagramPacket sendPacket = new DatagramPacket(sendDataBytes, sendDataBytes.length, table.get(origin).getNextJump(), 9999);  // Prepara o pacote
-                        DatagramSocket ds = new DatagramSocket(9999);
+                        DatagramSocket ds = new DatagramSocket();
                         ds.send(sendPacket);
                         ds.close();
                     }
@@ -161,7 +160,7 @@ public class PacketReceiver extends Thread implements Runnable {
                         sendData.flush();                                                      //
                         byte[] sendDataBytes = byteOut.toByteArray();                          //
                         DatagramPacket sendPacket = new DatagramPacket(sendDataBytes, sendDataBytes.length, table.get(origin).getNextJump(), 9999);  // Prepara o pacote
-                        DatagramSocket ds = new DatagramSocket(9999);
+                        DatagramSocket ds = new DatagramSocket();
                         ds.send(sendPacket);
                         ds.close();
                         if(!table.containsKey(origin)) {
@@ -170,7 +169,7 @@ public class PacketReceiver extends Thread implements Runnable {
                         }
                     }
                 }
-
+                ms.close();
             }
         } catch (IOException e) {
             System.out.println(e);

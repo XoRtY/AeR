@@ -25,11 +25,11 @@ public class HelloSender extends Thread implements Runnable{
     public void run(){
 
         try {
-            System.out.println(" Server is Running  ");
+            System.out.println(" Hello sender is Running  ");
 
             while (true) {
 
-                DatagramSocket ds = new DatagramSocket(9999);
+                DatagramSocket ds = new DatagramSocket();
 
                 InetAddress localhost = InetAddress.getLocalHost();
                 String localHostName = (localhost.getHostName()).trim();
@@ -43,7 +43,8 @@ public class HelloSender extends Thread implements Runnable{
                 sendData.writeObject(data);                                            // Serializa o objeto para o poder enviar
                 sendData.flush();                                                      //
                 byte[] sendDataBytes = byteOut.toByteArray();                          //
-                DatagramPacket sendPacket = new DatagramPacket(sendDataBytes, sendDataBytes.length);  // Prepara o pacote
+                InetAddress target = InetAddress.getByName("FF02::1");
+                DatagramPacket sendPacket = new DatagramPacket(sendDataBytes, sendDataBytes.length, target,9999);  // Prepara o pacote
                 ds.send(sendPacket);   //Envia o pacote
 
                 ds.close();

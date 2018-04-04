@@ -18,21 +18,21 @@ public class Adhoc_app implements Runnable {
 
             Scanner inVars = new Scanner(System.in);
 
-            //Cria o worker que recebe packets e corre o seu run()
-            System.out.println("Dead Interval in seconds:");  //tempo que fica a espera de um hello
-            int deadInterval = inVars.nextInt();
-            PacketReceiver receiverWorker = new PacketReceiver(table, waitingReply, deadInterval);
-            receiverWorker.run();
-
             //Cria o worker que manda hello packets e corre o seu run()
             System.out.println("Hello Interval in seconds:"); //Tempo entre cada hello
             int helloInterval = inVars.nextInt();
             HelloSender senderWorker = new HelloSender(table, helloInterval);
-            senderWorker.run();
+            senderWorker.start();
+
+            //Cria o worker que recebe packets e corre o seu run()
+            System.out.println("Dead Interval in seconds:");  //tempo que fica a espera de um hello
+            int deadInterval = inVars.nextInt();
+            PacketReceiver receiverWorker = new PacketReceiver(table, waitingReply, deadInterval);
+            receiverWorker.start();
 
             //Cria o worker que recebe packets tcp
             applayer_PakcetReceiver receiverWorkerTcp = new applayer_PakcetReceiver(table);
-            receiverWorkerTcp.run();
+            receiverWorkerTcp.start();
 
 
             String inLoop = "y"; //variavel de verificação do loop
@@ -44,6 +44,13 @@ public class Adhoc_app implements Runnable {
             }
             assert localhost != null;
             String localHostName = (localhost.getHostName()).trim();
+
+            System.out.println("It's routing time...");
+            try {
+                Thread.sleep(10000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
 
             //Entra no loop de pedir noticias
             while(inLoop.equals("y")){
@@ -71,7 +78,7 @@ public class Adhoc_app implements Runnable {
                     requestWorker.run();                                                                    //Corre-o
                     int timeoutAux = 0;
                     waitingReply = true;
-                    while(waitingReply | timeoutAux<timeout){                                               //Enquanto nao receber resposta ou passar o tempo
+                    while(waitingReply && timeoutAux<timeout){                                               //Enquanto nao receber resposta ou passar o tempo
                         try {
                             Thread.sleep(1000);
                         } catch (InterruptedException e) {
@@ -87,7 +94,7 @@ public class Adhoc_app implements Runnable {
                         try {
                             nextNode = new Socket(nextJump, 9999);
                             ObjectOutputStream nos = new ObjectOutputStream(nextNode.getOutputStream());
-                            nos.writeObject(request);//envia pacote de pedido de noticias para o proximo nodo
+                            nos.writeObject(request);  //envia pacote de pedido de noticias para o proximo nodo
                             nos.close();               //fecha o socket
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -100,9 +107,12 @@ public class Adhoc_app implements Runnable {
         }
 
     public static void main(String argv[]) throws Exception {
+        InetAddress localhost = InetAddress.getLocalHost();
+        String localHostName = (localhost.getHostName()).trim();
         String randomNews = generateString();
-        PrintWriter out = new PrintWriter("news.txt");
+        PrintWriter out = new PrintWriter("news"+localHostName+".txt");
         out.print(randomNews);
+        out.close();
 
         (new Thread(new Adhoc_app())).start();
     }

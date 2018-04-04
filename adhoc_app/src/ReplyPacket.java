@@ -1,7 +1,8 @@
+import java.io.Serializable;
 import java.net.InetAddress;
 import java.util.ArrayList;
 
-public class ReplyPacket {
+public class ReplyPacket implements Serializable {
     String targetS;
     String originS;
     InetAddress origin;

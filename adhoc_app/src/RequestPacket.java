@@ -1,8 +1,9 @@
+import java.io.Serializable;
 import java.net.InetAddress;
 import java.util.Set;
 import java.util.TreeMap;
 
-public class RequestPacket {
+public class RequestPacket implements Serializable {
     String toName;
     Set<String> visitedNodes;
     InetAddress origin;

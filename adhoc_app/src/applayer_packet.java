@@ -1,7 +1,8 @@
+import java.io.Serializable;
 import java.util.Stack;
 import java.lang.String;
 
-public abstract class applayer_packet {
+public abstract class applayer_packet implements Serializable{
     String target;
     Stack<String> journey; //stack nodos de passagem
 

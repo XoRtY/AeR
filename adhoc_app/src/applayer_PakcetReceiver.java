@@ -4,7 +4,7 @@ import java.util.*;
 import java.lang.String;
 
 
-public class applayer_PakcetReceiver implements Runnable{
+public class applayer_PakcetReceiver extends Thread implements Runnable{
     private TreeMap<String,TableEntry> table;
     private String name = "";
 

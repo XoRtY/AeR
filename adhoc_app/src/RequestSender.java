@@ -20,8 +20,8 @@ public class RequestSender extends Thread implements Runnable{
         Scanner vars = new Scanner(System.in);
 
         try {
-            System.out.println(" Server is Running  ");
-            DatagramSocket ds = new DatagramSocket(9999);
+
+            DatagramSocket ds = new DatagramSocket();
 
                 InetAddress localhost = InetAddress.getLocalHost();
                 String localHostName = (localhost.getHostName()).trim();
@@ -32,7 +32,8 @@ public class RequestSender extends Thread implements Runnable{
                 sendData.writeObject(req);                                             // Serializa o objeto para o poder enviar
                 sendData.flush();                                                      //
                 byte[] sendDataBytes = byteOut.toByteArray();                          //
-                DatagramPacket sendPacket = new DatagramPacket(sendDataBytes, sendDataBytes.length);  // Prepara o pacote
+                InetAddress target = InetAddress.getByName("FF02::1");
+                DatagramPacket sendPacket = new DatagramPacket(sendDataBytes, sendDataBytes.length, target,9999);  // Prepara o pacote
                 ds.send(sendPacket);                                                   //envia pedido de route para o proximo nodo
                 ds.close();
 
