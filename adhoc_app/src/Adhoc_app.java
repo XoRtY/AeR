@@ -21,12 +21,12 @@ public class Adhoc_app implements Runnable {
             //Cria o worker que manda hello packets e corre o seu run()
             System.out.println("Hello Interval in seconds:"); //Tempo entre cada hello
             int helloInterval = inVars.nextInt();
+            System.out.println("Dead Interval in seconds:(make it so it is at least 3 times the hello interval)");  //tempo que fica a espera de um hello
+            int deadInterval = inVars.nextInt();
             HelloSender senderWorker = new HelloSender(table, helloInterval);
             senderWorker.start();
 
             //Cria o worker que recebe packets e corre o seu run()
-            System.out.println("Dead Interval in seconds:");  //tempo que fica a espera de um hello
-            int deadInterval = inVars.nextInt();
             PacketReceiver receiverWorker = new PacketReceiver(table, waitingReply, deadInterval);
             receiverWorker.start();
 
@@ -34,6 +34,17 @@ public class Adhoc_app implements Runnable {
             applayer_PakcetReceiver receiverWorkerTcp = new applayer_PakcetReceiver(table);
             receiverWorkerTcp.start();
 
+            System.out.println("Hello protocol helloing...");
+            int timerAux = 0;
+            while (timerAux<=deadInterval){
+                timerAux++;
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            senderWorker.interrupt();
 
             String inLoop = "y"; //variavel de verificação do loop
             InetAddress localhost = null;
@@ -44,13 +55,6 @@ public class Adhoc_app implements Runnable {
             }
             assert localhost != null;
             String localHostName = (localhost.getHostName()).trim();
-
-            System.out.println("It's routing time...");
-            try {
-                Thread.sleep(10000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
 
             //Entra no loop de pedir noticias
             while(inLoop.equals("y")){
@@ -75,9 +79,9 @@ public class Adhoc_app implements Runnable {
                     System.out.println("Insert desired timeout time, in seconds:");                         //Pergunta o tempo de timeout
                     int timeout = inVars.nextInt();
                     RequestSender requestWorker = new RequestSender(targetNews, radius);                    //Cria um worker de routeRequest
+                    waitingReply = true;
                     requestWorker.run();                                                                    //Corre-o
                     int timeoutAux = 0;
-                    waitingReply = true;
                     while(waitingReply && timeoutAux<timeout){                                               //Enquanto nao receber resposta ou passar o tempo
                         try {
                             Thread.sleep(1000);
@@ -87,7 +91,7 @@ public class Adhoc_app implements Runnable {
                         timeoutAux++;                                                                        //incrementa o tempo
                     }
                     requestWorker.interrupt();                                                               //para o request worker
-                    if (timeoutAux<timeout){                                                                 //Se não passar o tempo de timeout
+                    if (table.containsKey(targetNews)){                               //Se não passar o tempo de timeout
                         applayer_packetPedido request = new applayer_packetPedido(targetNews,null,localHostName);  //cria o pedido de noticias
                         InetAddress nextJump = table.get(targetNews).getNextJump();
                         Socket nextNode = null;
@@ -100,11 +104,16 @@ public class Adhoc_app implements Runnable {
                             applayer_packetNoticia noticia = (applayer_packetNoticia) o;
                             nos.close();               //fecha o socket
                         } catch (IOException e) {
-                            e.printStackTrace();
+
                         } catch (ClassNotFoundException e) {
                             e.printStackTrace();
                         }
                     }
+                }
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
                 System.out.println("Pretende continuar?(y for yes, n for no)");         //pede a variavel de continuação no loop
                 inLoop = inVars.next();

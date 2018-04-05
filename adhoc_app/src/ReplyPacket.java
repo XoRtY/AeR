@@ -6,13 +6,15 @@ public class ReplyPacket implements Serializable {
     String targetS;
     String originS;
     InetAddress origin;
+    int radius;
     boolean inRadius;
 
-    public ReplyPacket (String target, String origin){
+    public ReplyPacket (String target, String origin, int rad){
         this.targetS = target;
         this.originS = origin;
         this.origin = null;
         this.inRadius = true;
+        this.radius = rad;
     }
 
     public ReplyPacket(String target){
@@ -38,5 +40,13 @@ public class ReplyPacket implements Serializable {
 
     public boolean isInRadius() {
         return inRadius;
+    }
+
+    public int getRadius() {
+        return radius;
+    }
+
+    public void dcRadius(){
+        this.radius--;
     }
 }

@@ -55,7 +55,6 @@ public class HelloSender extends Thread implements Runnable{
         } catch (IOException e) {
             System.out.println(e);
         } catch (InterruptedException e) {
-            e.printStackTrace();
         }
 
     }

@@ -9,6 +9,7 @@ public class RequestPacket implements Serializable {
     InetAddress origin;
     String originName;
     int radius;
+    int radiusO;
 
     RequestPacket(String tName, Set<String> vNodes, String sender, int rad){
         this.toName = tName;
@@ -16,6 +17,7 @@ public class RequestPacket implements Serializable {
         this.originName = sender;
         this.origin = null;
         this.radius = rad;
+        this.radiusO = rad;
     }
 
     public String getToName() {
@@ -48,5 +50,9 @@ public class RequestPacket implements Serializable {
 
     public void decRadius(){
         this.radius--;
+    }
+
+    public int getRadiusO() {
+        return radiusO;
     }
 }
